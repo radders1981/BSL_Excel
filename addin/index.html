@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BSL Excel</title>
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <link rel="stylesheet" href="taskpane.css" />
+</head>
+<body>
+  <h1>BSL Excel</h1>
+
+  <!-- Server connection -->
+  <div class="section">
+    <div class="section-label">Server URL</div>
+    <div class="server-row">
+      <input type="text" id="serverUrl" placeholder="http://localhost:8000" />
+      <button class="btn-secondary" id="connectBtn">Connect</button>
+    </div>
+  </div>
+
+  <!-- Query builder (hidden until connected) -->
+  <div id="querySection" class="hidden">
+    <div class="section">
+      <div class="section-label">Model</div>
+      <select id="modelSelect">
+        <option value="">-- select a model --</option>
+      </select>
+    </div>
+
+    <!-- Fields (hidden until model selected) -->
+    <div id="fieldSection" class="hidden">
+      <div class="section">
+        <div class="section-label">Dimensions</div>
+        <div class="checkbox-list" id="dimensionList"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Measures</div>
+        <div class="checkbox-list" id="measureList"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Filter (optional)</div>
+        <div class="filter-row">
+          <select id="filterField">
+            <option value="">-- none --</option>
+          </select>
+          <select id="filterOp">
+            <option value="eq">=</option>
+            <option value="neq">!=</option>
+            <option value="gt">&gt;</option>
+            <option value="gte">&gt;=</option>
+            <option value="lt">&lt;</option>
+            <option value="lte">&lt;=</option>
+            <option value="contains">contains</option>
+          </select>
+          <input type="text" id="filterValue" placeholder="value" />
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Row limit</div>
+        <div class="limit-row">
+          <input type="number" id="limitInput" value="1000" min="1" max="100000" />
+          <span style="color:#616161;">rows max</span>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="runBtn">Run Query &#8594; Sheet</button>
+    </div>
+  </div>
+
+  <div id="status" class="idle">Enter your server URL and click Connect.</div>
+
+  <script src="taskpane.js"></script>
+</body>
+</html>

@@ -1,0 +1,188 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  color: #1f1f1f;
+  background: #ffffff;
+  padding: 12px;
+}
+
+h1 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f6cbd;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+/* ---- Sections ---- */
+.section {
+  margin-bottom: 14px;
+}
+
+.section-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #616161;
+  margin-bottom: 5px;
+}
+
+/* ---- Server row ---- */
+.server-row {
+  display: flex;
+  gap: 6px;
+}
+
+.server-row input {
+  flex: 1;
+}
+
+/* ---- Inputs & selects ---- */
+input[type="text"],
+input[type="number"],
+select {
+  width: 100%;
+  padding: 5px 8px;
+  border: 1px solid #d1d1d1;
+  border-radius: 4px;
+  font-size: 13px;
+  background: #fafafa;
+  color: #1f1f1f;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus {
+  border-color: #0f6cbd;
+  background: #fff;
+}
+
+/* ---- Checkbox lists ---- */
+.checkbox-list {
+  max-height: 120px;
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 4px;
+  background: #fafafa;
+}
+
+.checkbox-list label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 4px;
+  border-radius: 3px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-list label:hover {
+  background: #f0f0f0;
+}
+
+.checkbox-list input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  accent-color: #0f6cbd;
+}
+
+/* ---- Filter row ---- */
+.filter-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 2fr;
+  gap: 4px;
+}
+
+/* ---- Limit row ---- */
+.limit-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.limit-row input {
+  width: 80px;
+}
+
+/* ---- Buttons ---- */
+button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-primary {
+  background: #0f6cbd;
+  color: #fff;
+  width: 100%;
+  padding: 8px;
+  font-size: 14px;
+}
+
+.btn-primary:hover {
+  background: #115ea3;
+}
+
+.btn-primary:disabled {
+  background: #c7c7c7;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #e0e0e0;
+  color: #1f1f1f;
+  white-space: nowrap;
+}
+
+.btn-secondary:hover {
+  background: #d0d0d0;
+}
+
+/* ---- Status bar ---- */
+#status {
+  margin-top: 10px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  min-height: 28px;
+}
+
+#status.idle {
+  background: #f0f0f0;
+  color: #616161;
+}
+
+#status.ok {
+  background: #dff6dd;
+  color: #107c10;
+}
+
+#status.error {
+  background: #fde7e9;
+  color: #a4262c;
+}
+
+#status.loading {
+  background: #eff6fc;
+  color: #0f6cbd;
+}
+
+/* ---- Hidden ---- */
+.hidden {
+  display: none;
+}
