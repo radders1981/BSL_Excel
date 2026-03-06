@@ -131,11 +131,11 @@ Interactive API docs available at `http://localhost:8000/docs` when the server i
 
 ## Publishing the Add-in UI to GitHub Pages
 
-The `addin/` folder is a static web app that Excel loads. To host it publicly:
+The `docs/` folder is a static web app that Excel loads. To host it publicly:
 
 1. Push this repo to GitHub
-2. **Settings → Pages → Source**: branch `main`, folder `/addin`
-3. GitHub will provide a URL like `https://yourname.github.io/bsl-excel/addin/`
+2. **Settings → Pages → Source**: branch `main`, folder `/docs`
+3. GitHub will provide a URL like `https://yourname.github.io/bsl-excel/docs/`
 4. Edit `manifest.xml` — replace all `YOUR_GITHUB_USERNAME` and `YOUR_REPO_NAME` placeholders with your real values
 5. Re-sideload the updated `manifest.xml` in Excel
 
@@ -165,7 +165,7 @@ bsl-excel/
 ├── data/
 │   └── tpch.duckdb         # Demo DuckDB database
 │
-├── addin/                  # Static Excel task pane (GitHub Pages)
+├── docs/                  # Static Excel task pane (GitHub Pages)
 │   ├── index.html
 │   ├── taskpane.js
 │   └── taskpane.css

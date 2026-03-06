@@ -1,0 +1,17 @@
+# DuckDB database files (generate locally with scripts/generate_demo_db.py)
+data/*.duckdb
+data/*.duckdb.wal
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.python-version
+
+# UV
+uv.lock
+
+# OS
+.DS_Store
+Thumbs.db
