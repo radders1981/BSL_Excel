@@ -41,22 +41,9 @@
       </div>
 
       <div class="section">
-        <div class="section-label">Filter (optional)</div>
-        <div class="filter-row">
-          <select id="filterField">
-            <option value="">-- none --</option>
-          </select>
-          <select id="filterOp">
-            <option value="eq">=</option>
-            <option value="neq">!=</option>
-            <option value="gt">&gt;</option>
-            <option value="gte">&gt;=</option>
-            <option value="lt">&lt;</option>
-            <option value="lte">&lt;=</option>
-            <option value="contains">contains</option>
-          </select>
-          <input type="text" id="filterValue" placeholder="value" />
-        </div>
+        <div class="section-label">Filters</div>
+        <div id="filterList"></div>
+        <button class="btn-add-filter" id="addFilterBtn" type="button">+ Add Filter</button>
       </div>
 
       <div class="section">

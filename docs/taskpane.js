@@ -5,6 +5,7 @@
 // ---------------------------------------------------------------------------
 let serverUrl = "";
 let currentSchema = null; // { model, dimensions: [], measures: [] }
+let filterDimensions = [];
 
 // ---------------------------------------------------------------------------
 // DOM helpers
@@ -29,11 +30,54 @@ function buildCheckboxList(containerId, items) {
     const cb = document.createElement("input");
     cb.type = "checkbox";
     cb.value = item;
-    cb.checked = true; // select all by default
+    cb.checked = false;
     label.appendChild(cb);
     label.appendChild(document.createTextNode(item));
     container.appendChild(label);
   });
+}
+
+function buildFilterRow() {
+  const row = document.createElement("div");
+  row.className = "filter-row";
+
+  const fieldSel = document.createElement("select");
+  fieldSel.className = "filter-field";
+  filterDimensions.forEach((d) => {
+    const opt = document.createElement("option");
+    opt.value = d;
+    opt.textContent = d;
+    fieldSel.appendChild(opt);
+  });
+
+  const opSel = document.createElement("select");
+  opSel.className = "filter-op";
+  [["eq", "="], ["neq", "!="], ["gt", ">"], ["gte", ">="], ["lt", "<"], ["lte", "<="], ["contains", "contains"]].forEach(
+    ([val, text]) => {
+      const opt = document.createElement("option");
+      opt.value = val;
+      opt.textContent = text;
+      opSel.appendChild(opt);
+    }
+  );
+
+  const valInput = document.createElement("input");
+  valInput.type = "text";
+  valInput.className = "filter-value";
+  valInput.placeholder = "value";
+
+  const removeBtn = document.createElement("button");
+  removeBtn.type = "button";
+  removeBtn.className = "btn-remove-filter";
+  removeBtn.textContent = "✕";
+  removeBtn.addEventListener("click", () => row.remove());
+
+  row.appendChild(fieldSel);
+  row.appendChild(opSel);
+  row.appendChild(valInput);
+  row.appendChild(removeBtn);
+
+  return row;
 }
 
 function getChecked(containerId) {
@@ -97,20 +141,15 @@ async function loadSchema() {
   try {
     const res = await fetch(`${serverUrl}/models/${modelName}/schema`);
     const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || data.error || `HTTP ${res.status}`);
     currentSchema = data;
 
     buildCheckboxList("dimensionList", data.dimensions);
     buildCheckboxList("measureList", data.measures);
 
-    // Populate filter field dropdown
-    const filterField = $("filterField");
-    filterField.innerHTML = '<option value="">-- none --</option>';
-    [...data.dimensions].forEach((d) => {
-      const opt = document.createElement("option");
-      opt.value = d;
-      opt.textContent = d;
-      filterField.appendChild(opt);
-    });
+    // Reset filter builder
+    filterDimensions = data.dimensions;
+    $("filterList").innerHTML = "";
 
     $("fieldSection").classList.remove("hidden");
     setStatus(`Schema loaded for '${modelName}'.`, "ok");
@@ -138,12 +177,14 @@ async function runQuery() {
   }
 
   const filters = [];
-  const filterField = $("filterField").value;
-  const filterOp = $("filterOp").value;
-  const filterValue = $("filterValue").value.trim();
-  if (filterField && filterValue) {
-    filters.push({ dimension: filterField, op: filterOp, value: filterValue });
-  }
+  document.querySelectorAll("#filterList .filter-row").forEach((row) => {
+    const field = row.querySelector(".filter-field").value;
+    const op = row.querySelector(".filter-op").value;
+    const value = row.querySelector(".filter-value").value.trim();
+    if (field && value) {
+      filters.push({ dimension: field, op, value });
+    }
+  });
 
   const limit = parseInt($("limitInput").value, 10) || 1000;
 
@@ -216,6 +257,10 @@ Office.onReady(() => {
   $("connectBtn").addEventListener("click", connect);
   $("modelSelect").addEventListener("change", loadSchema);
   $("runBtn").addEventListener("click", runQuery);
+  $("addFilterBtn").addEventListener("click", () => {
+    if (filterDimensions.length === 0) return;
+    $("filterList").appendChild(buildFilterRow());
+  });
 
   // Allow Enter key in server URL field to connect
   $("serverUrl").addEventListener("keydown", (e) => {

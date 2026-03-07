@@ -97,11 +97,46 @@ select:focus {
   accent-color: #0f6cbd;
 }
 
-/* ---- Filter row ---- */
+/* ---- Filter rows ---- */
 .filter-row {
   display: grid;
-  grid-template-columns: 2fr 1fr 2fr;
+  grid-template-columns: 2fr 1fr 2fr auto;
   gap: 4px;
+  margin-bottom: 4px;
+}
+
+.btn-remove-filter {
+  padding: 0 8px;
+  background: none;
+  border: 1px solid #d1d1d1;
+  border-radius: 4px;
+  color: #616161;
+  font-size: 12px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.btn-remove-filter:hover {
+  background: #fde7e9;
+  border-color: #a4262c;
+  color: #a4262c;
+}
+
+.btn-add-filter {
+  width: 100%;
+  margin-top: 4px;
+  padding: 5px 8px;
+  background: none;
+  border: 1px dashed #0f6cbd;
+  border-radius: 4px;
+  color: #0f6cbd;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-add-filter:hover {
+  background: #eff6fc;
 }
 
 /* ---- Limit row ---- */

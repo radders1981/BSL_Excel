@@ -4,10 +4,14 @@ All responses are JSON. CORS is open for local use.
 """
 from __future__ import annotations
 
-import ibis
-from fastapi import FastAPI, HTTPException
+import traceback
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+
+import pathlib
 
 from app.loader import load_models
 
@@ -19,6 +23,17 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    traceback.print_exc()
+    return JSONResponse(status_code=500, content={"error": str(exc)})
+
+
+# Serve the task pane UI at /ui/
+_docs_dir = pathlib.Path("docs")
+if _docs_dir.exists():
+    app.mount("/ui", StaticFiles(directory=str(_docs_dir), html=True), name="ui")
 
 # Load models once at startup
 MODELS = load_models()
@@ -54,6 +69,22 @@ def health():
     return {"status": "ok"}
 
 
+@app.get("/debug/models")
+def debug_models():
+    """Inspect BSL SemanticModel schema methods — remove once working."""
+    result = {}
+    for name, sm in MODELS.items():
+        dims = sm.get_dimensions()
+        meas = sm.get_measures()
+        result[name] = {
+            "get_dimensions_type": type(dims).__name__,
+            "get_dimensions_value": str(dims),
+            "get_measures_type": type(meas).__name__,
+            "get_measures_value": str(meas),
+        }
+    return result
+
+
 @app.get("/models")
 def list_models():
     return {"models": list(MODELS.keys())}
@@ -66,8 +97,8 @@ def model_schema(model_name: str):
     sm = MODELS[model_name]
     return {
         "model": model_name,
-        "dimensions": list(sm.dimensions.keys()),
-        "measures": list(sm.measures.keys()),
+        "dimensions": list(sm.get_dimensions().keys()),
+        "measures": list(sm.get_measures().keys()),
     }
 
 
@@ -77,44 +108,47 @@ def run_query(req: QueryRequest):
         raise HTTPException(status_code=404, detail=f"Model '{req.model}' not found.")
 
     sm = MODELS[req.model]
+    all_dims = sm.get_dimensions()
+    all_meas = sm.get_measures()
 
     # Validate requested fields
     for d in req.dimensions:
-        if d not in sm.dimensions:
+        if d not in all_dims:
             raise HTTPException(status_code=400, detail=f"Unknown dimension: '{d}'")
     for m in req.measures:
-        if m not in sm.measures:
+        if m not in all_meas:
             raise HTTPException(status_code=400, detail=f"Unknown measure: '{m}'")
 
     # Build ibis filter expressions
     ibis_filters = []
     for f in req.filters:
-        if f.dimension not in sm.dimensions:
+        if f.dimension not in all_dims:
             raise HTTPException(status_code=400, detail=f"Unknown filter field: '{f.dimension}'")
         if f.op not in FILTER_OPS:
             raise HTTPException(status_code=400, detail=f"Unknown operator: '{f.op}'. Use one of {sorted(FILTER_OPS)}")
 
-        col_expr_fn = sm.dimensions[f.dimension]
+        dim = all_dims[f.dimension]
         tbl = sm.table
 
-        def make_filter(col_fn, op, val, tbl=tbl):
-            col = col_fn(tbl)
+        def make_filter(dim_obj, op, val, tbl=tbl):
+            # Use dim_obj(tbl) to resolve both Deferred and callable exprs
+            col = dim_obj(tbl)
             if op == "eq":
-                return lambda t: col_fn(t) == _cast(col, val)
+                return lambda t: dim_obj(t) == _cast(col, val)
             elif op == "neq":
-                return lambda t: col_fn(t) != _cast(col, val)
+                return lambda t: dim_obj(t) != _cast(col, val)
             elif op == "gt":
-                return lambda t: col_fn(t) > _cast(col, val)
+                return lambda t: dim_obj(t) > _cast(col, val)
             elif op == "gte":
-                return lambda t: col_fn(t) >= _cast(col, val)
+                return lambda t: dim_obj(t) >= _cast(col, val)
             elif op == "lt":
-                return lambda t: col_fn(t) < _cast(col, val)
+                return lambda t: dim_obj(t) < _cast(col, val)
             elif op == "lte":
-                return lambda t: col_fn(t) <= _cast(col, val)
+                return lambda t: dim_obj(t) <= _cast(col, val)
             elif op == "contains":
-                return lambda t: col_fn(t).contains(val)
+                return lambda t: dim_obj(t).contains(val)
 
-        ibis_filters.append(make_filter(col_expr_fn, f.op, f.value))
+        ibis_filters.append(make_filter(dim, f.op, f.value))
 
     try:
         result_df = sm.query(
