@@ -132,25 +132,6 @@ Interactive API docs available at `http://localhost:8000/docs` when the server i
 
 ---
 
-## Publishing the Add-in UI to GitHub Pages
-
-The `docs/` folder is a static web app that Excel loads. To host it publicly:
-
-1. Push this repo to GitHub
-2. **Settings → Pages → Source**: branch `main`, folder `/docs`
-3. GitHub will provide a URL like `https://yourname.github.io/bsl-excel/docs/`
-4. Edit `manifest.xml` — replace all `YOUR_GITHUB_USERNAME` and `YOUR_REPO_NAME` placeholders with your real values
-5. Re-sideload the updated `manifest.xml` in Excel
-
-Until you set up GitHub Pages you can also use a local server for development:
-
-```bash
-python -m http.server 3000 --directory addin
-# Then set SourceLocation in manifest.xml to http://localhost:3000
-```
-
----
-
 ## Project Structure
 
 ```
