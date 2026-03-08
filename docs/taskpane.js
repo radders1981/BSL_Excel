@@ -4,7 +4,8 @@
 // State
 // ---------------------------------------------------------------------------
 let serverUrl = "";
-let currentSchema = null; // { model, dimensions: [], measures: [] }
+let currentSchema = null; // { model, dimensions: [{name, type}], measures: [] }
+let dimTypes = {};         // { fieldName: "date" | "timestamp" | "integer" | ... }
 let filterDimensions = [];
 let sortFields = [];       // all dims + measures for the current schema
 let _dragSrc = null;       // element being dragged
@@ -85,6 +86,27 @@ function buildSelectedItem(availId, selectedId, fieldName) {
 
   item.appendChild(handle);
   item.appendChild(name);
+
+  const fieldType = dimTypes[fieldName];
+  if (fieldType === "date" || fieldType === "timestamp") {
+    const grainSel = document.createElement("select");
+    grainSel.className = "grain-select";
+    grainSel.title = "Time grain";
+    [["", "raw"], ["year", "year"], ["quarter", "qtr"], ["month", "month"], ["date", "date"]].forEach(([val, text]) => {
+      const opt = document.createElement("option");
+      opt.value = val;
+      opt.textContent = text;
+      grainSel.appendChild(opt);
+    });
+    grainSel.addEventListener("change", () => {
+      item.dataset.grain = grainSel.value;
+      grainSel.classList.toggle("grain-active", grainSel.value !== "");
+    });
+    // Prevent drag from firing when interacting with the select
+    grainSel.addEventListener("mousedown", (e) => e.stopPropagation());
+    item.appendChild(grainSel);
+  }
+
   item.appendChild(removeBtn);
   return item;
 }
@@ -335,12 +357,17 @@ async function loadSchema() {
     if (!res.ok) throw new Error(data.detail || data.error || `HTTP ${res.status}`);
     currentSchema = data;
 
-    buildDualPanel("dimensionList", "dimensionSelected", data.dimensions);
+    // data.dimensions is now [{name, type}, ...] — extract names and build type map
+    const dimNames = data.dimensions.map((d) => d.name);
+    dimTypes = {};
+    data.dimensions.forEach((d) => { dimTypes[d.name] = d.type; });
+
+    buildDualPanel("dimensionList", "dimensionSelected", dimNames);
     buildDualPanel("measureList", "measureSelected", data.measures);
 
     // Reset filter, sort builders
-    filterDimensions = data.dimensions;
-    sortFields = [...data.dimensions, ...data.measures];
+    filterDimensions = dimNames;
+    sortFields = [...dimNames, ...data.measures];
     $("filterList").innerHTML = "";
     $("sortList").innerHTML = "";
 
@@ -388,7 +415,12 @@ async function runQuery() {
     if (field) sort_by.push({ field, direction });
   });
 
-  const payload = { model: modelName, dimensions, measures, filters, sort_by, limit };
+  const grains = {};
+  document.querySelectorAll("#dimensionSelected [data-field]").forEach((el) => {
+    if (el.dataset.grain) grains[el.dataset.field] = el.dataset.grain;
+  });
+
+  const payload = { model: modelName, dimensions, measures, filters, sort_by, grains, limit };
 
   setStatus("Running query...", "loading");
   $("runBtn").disabled = true;

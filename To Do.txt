@@ -1,9 +1,6 @@
 time dimensions (year, month, date, quarter, 1st of month, 1st of quarter etc)
     (right click in selected box to change grain?)
 
-time ranges in filter
-
-remove data from table that contains last query if selecting an area that already contains data
-check if will overwrite data. 
+check if will overwrite data, need to confirm if will overwrite existing data.
 
 allow folders? for sorting / managing dimensions and or measures?

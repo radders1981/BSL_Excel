@@ -200,6 +200,33 @@ select:focus {
   color: #a4262c;
 }
 
+/* ---- Grain select (on temporal dims in selected panel) ---- */
+.grain-select {
+  width: auto;
+  max-width: 50px;
+  padding: 1px 2px;
+  font-size: 11px;
+  border: 1px solid #d1d1d1;
+  border-radius: 3px;
+  background: #f0f0f0;
+  color: #616161;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.grain-select:focus {
+  border-color: #0f6cbd;
+  background: #fff;
+  outline: none;
+}
+
+.grain-select.grain-active {
+  background: #dff6dd;
+  border-color: #107c10;
+  color: #107c10;
+  font-weight: 600;
+}
+
 /* ---- Drag handles ---- */
 .drag-handle {
   color: #bdbdbd;
