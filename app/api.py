@@ -181,9 +181,13 @@ def run_query(req: QueryRequest):
 
         ibis_filters.append(make_filter(dim, f.op, f.value))
 
-    # Validate sort fields
+    # Validate sort fields — grained dimensions are output as "{dim}.{grain}"
     if req.sort_by:
-        valid_fields = set(req.dimensions + req.measures)
+        output_dim_names = {
+            f"{d}.{req.grains[d]}" if d in req.grains else d
+            for d in req.dimensions
+        }
+        valid_fields = output_dim_names | set(req.measures)
         for s in req.sort_by:
             if s.field not in valid_fields:
                 raise HTTPException(

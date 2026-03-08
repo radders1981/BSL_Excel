@@ -1,6 +1,10 @@
-time dimensions (year, month, date, quarter, 1st of month, 1st of quarter etc)
-    (right click in selected box to change grain?)
+Different filter operations for different data types
+(eg string contains, numbers, dates >=, <=)
 
-check if will overwrite data, need to confirm if will overwrite existing data.
+HAVING clause
+write as table...
+Overwrite protection
 
-allow folders? for sorting / managing dimensions and or measures?
+fix sorting on time grain.
+
+specify which fields are included, excluded from the field list (eg _keys)

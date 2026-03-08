@@ -80,8 +80,9 @@ function buildSelectedItem(availId, selectedId, fieldName) {
     const cb = [...document.querySelectorAll(`#${availId} input[type=checkbox]`)]
       .find((c) => c.value === fieldName);
     if (cb) cb.checked = false;
+    const effectiveLabel = item.dataset.grain ? `${fieldName}.${item.dataset.grain}` : fieldName;
     item.remove();
-    _removeSortField(fieldName);
+    _removeSortField(effectiveLabel);
   });
 
   item.appendChild(handle);
@@ -99,8 +100,11 @@ function buildSelectedItem(availId, selectedId, fieldName) {
       grainSel.appendChild(opt);
     });
     grainSel.addEventListener("change", () => {
+      const oldLabel = item.dataset.grain ? `${fieldName}.${item.dataset.grain}` : fieldName;
       item.dataset.grain = grainSel.value;
+      const newLabel = grainSel.value ? `${fieldName}.${grainSel.value}` : fieldName;
       grainSel.classList.toggle("grain-active", grainSel.value !== "");
+      _renameSortField(oldLabel, newLabel);
     });
     // Prevent drag from firing when interacting with the select
     grainSel.addEventListener("mousedown", (e) => e.stopPropagation());
@@ -126,8 +130,9 @@ function removeFromSelected(selectedId, fieldName) {
     (el) => el.dataset.field === fieldName
   );
   if (item) {
+    const effectiveLabel = item.dataset.grain ? `${fieldName}.${item.dataset.grain}` : fieldName;
     item.remove();
-    _removeSortField(fieldName);
+    _removeSortField(effectiveLabel);
   }
 }
 
@@ -152,6 +157,20 @@ function _removeSortField(fieldName) {
     }
     const opt = [...sel.options].find((o) => o.value === fieldName);
     if (opt) opt.remove();
+  });
+}
+
+function _renameSortField(oldName, newName) {
+  if (oldName === newName) return;
+  document.querySelectorAll("#sortList .sort-row").forEach((row) => {
+    const sel = row.querySelector(".sort-field");
+    [...sel.options].forEach((o) => {
+      if (o.value === oldName) {
+        o.value = newName;
+        o.textContent = newName;
+        if (sel.value === oldName) sel.value = newName;
+      }
+    });
   });
 }
 
@@ -264,7 +283,9 @@ function buildSortRow() {
   row.className = "sort-row";
 
   const activeFields = [
-    ...getSelected("dimensionSelected"),
+    ...[...document.querySelectorAll("#dimensionSelected [data-field]")].map((el) =>
+      el.dataset.grain ? `${el.dataset.field}.${el.dataset.grain}` : el.dataset.field
+    ),
     ...getSelected("measureSelected"),
   ];
 

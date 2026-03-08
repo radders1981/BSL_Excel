@@ -146,15 +146,6 @@ region_to_nation_to_customer_to_orders = region_to_nation_to_customer.join_one(
     lambda r, o: r.c_custkey == o.o_custkey
 )
 
-# # Test result
-# result = (
-#     region_to_nation_to_customer_to_orders
-#     .group_by("region.name")
-#     .aggregate("customer.customer_count")
-# ).execute()
-
-# result
-
 # REQUIRED: the API reads this dict to discover available models
 MODELS = {
     "orders":          orders,
