@@ -6,6 +6,8 @@
 let serverUrl = "";
 let currentSchema = null; // { model, dimensions: [], measures: [] }
 let filterDimensions = [];
+let sortFields = [];       // all dims + measures for the current schema
+let _dragSrc = null;       // element being dragged
 
 // ---------------------------------------------------------------------------
 // DOM helpers
@@ -34,6 +36,161 @@ function buildCheckboxList(containerId, items) {
     label.appendChild(cb);
     label.appendChild(document.createTextNode(item));
     container.appendChild(label);
+  });
+}
+
+// Build left (checkboxes) + right (ordered selection) dual panel.
+function buildDualPanel(availId, selectedId, items) {
+  buildCheckboxList(availId, items);
+  $(selectedId).innerHTML = "";
+  addDragHandlers($(selectedId));
+
+  $(availId).addEventListener("change", (e) => {
+    if (e.target.type !== "checkbox") return;
+    if (e.target.checked) {
+      addToSelected(availId, selectedId, e.target.value);
+    } else {
+      removeFromSelected(selectedId, e.target.value);
+    }
+  });
+}
+
+function buildSelectedItem(availId, selectedId, fieldName) {
+  const item = document.createElement("div");
+  item.className = "selected-item";
+  item.draggable = true;
+  item.dataset.field = fieldName;
+
+  const handle = document.createElement("span");
+  handle.className = "drag-handle";
+  handle.textContent = "⠿";
+  handle.setAttribute("aria-hidden", "true");
+
+  const name = document.createElement("span");
+  name.className = "item-name";
+  name.textContent = fieldName;
+  name.title = fieldName;
+
+  const removeBtn = document.createElement("button");
+  removeBtn.type = "button";
+  removeBtn.className = "btn-deselect";
+  removeBtn.textContent = "✕";
+  removeBtn.addEventListener("click", () => {
+    const cb = [...document.querySelectorAll(`#${availId} input[type=checkbox]`)]
+      .find((c) => c.value === fieldName);
+    if (cb) cb.checked = false;
+    item.remove();
+    _removeSortField(fieldName);
+  });
+
+  item.appendChild(handle);
+  item.appendChild(name);
+  item.appendChild(removeBtn);
+  return item;
+}
+
+function addToSelected(availId, selectedId, fieldName) {
+  const container = $(selectedId);
+  const already = [...container.querySelectorAll("[data-field]")].some(
+    (el) => el.dataset.field === fieldName
+  );
+  if (already) return;
+  container.appendChild(buildSelectedItem(availId, selectedId, fieldName));
+  _addSortOption(fieldName);
+}
+
+function removeFromSelected(selectedId, fieldName) {
+  const item = [...$(selectedId).querySelectorAll("[data-field]")].find(
+    (el) => el.dataset.field === fieldName
+  );
+  if (item) {
+    item.remove();
+    _removeSortField(fieldName);
+  }
+}
+
+function _addSortOption(fieldName) {
+  document.querySelectorAll("#sortList .sort-row").forEach((row) => {
+    const sel = row.querySelector(".sort-field");
+    if (![...sel.options].some((o) => o.value === fieldName)) {
+      const opt = document.createElement("option");
+      opt.value = fieldName;
+      opt.textContent = fieldName;
+      sel.appendChild(opt);
+    }
+  });
+}
+
+function _removeSortField(fieldName) {
+  document.querySelectorAll("#sortList .sort-row").forEach((row) => {
+    const sel = row.querySelector(".sort-field");
+    if (sel.value === fieldName) {
+      row.remove();
+      return;
+    }
+    const opt = [...sel.options].find((o) => o.value === fieldName);
+    if (opt) opt.remove();
+  });
+}
+
+function getSelected(selectedId) {
+  return [...$(selectedId).querySelectorAll("[data-field]")].map((el) => el.dataset.field);
+}
+
+function addDragHandlers(container) {
+  container.addEventListener("dragstart", (e) => {
+    const item = e.target.closest(".selected-item");
+    if (!item) return;
+    _dragSrc = item;
+    e.dataTransfer.effectAllowed = "move";
+    requestAnimationFrame(() => item.classList.add("dragging"));
+  });
+
+  container.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    const target = e.target.closest(".selected-item");
+    if (target && target !== _dragSrc) {
+      container.querySelectorAll(".selected-item.drag-over").forEach((l) => l.classList.remove("drag-over"));
+      target.classList.add("drag-over");
+    }
+  });
+
+  container.addEventListener("dragleave", (e) => {
+    if (!container.contains(e.relatedTarget)) {
+      container.querySelectorAll(".selected-item.drag-over").forEach((l) => l.classList.remove("drag-over"));
+    }
+  });
+
+  container.addEventListener("drop", (e) => {
+    e.preventDefault();
+    const target = e.target.closest(".selected-item");
+    if (target && _dragSrc && target !== _dragSrc) {
+      target.classList.remove("drag-over");
+      const rect = target.getBoundingClientRect();
+      if (e.clientY < rect.top + rect.height / 2) {
+        container.insertBefore(_dragSrc, target);
+      } else {
+        container.insertBefore(_dragSrc, target.nextSibling);
+      }
+    }
+  });
+
+  container.addEventListener("dragend", () => {
+    container.querySelectorAll(".selected-item").forEach((l) => l.classList.remove("dragging", "drag-over"));
+    _dragSrc = null;
+  });
+}
+
+function setAllChecked(availId, selectedId, checked) {
+  document.querySelectorAll(`#${availId} input[type=checkbox]`).forEach((cb) => {
+    if (cb.checked === checked) return;
+    cb.checked = checked;
+    if (checked) {
+      addToSelected(availId, selectedId, cb.value);
+    } else {
+      removeFromSelected(selectedId, cb.value);
+    }
   });
 }
 
@@ -80,10 +237,44 @@ function buildFilterRow() {
   return row;
 }
 
-function getChecked(containerId) {
-  return Array.from(
-    document.querySelectorAll(`#${containerId} input[type=checkbox]:checked`)
-  ).map((cb) => cb.value);
+function buildSortRow() {
+  const row = document.createElement("div");
+  row.className = "sort-row";
+
+  const activeFields = [
+    ...getSelected("dimensionSelected"),
+    ...getSelected("measureSelected"),
+  ];
+
+  const fieldSel = document.createElement("select");
+  fieldSel.className = "sort-field";
+  activeFields.forEach((f) => {
+    const opt = document.createElement("option");
+    opt.value = f;
+    opt.textContent = f;
+    fieldSel.appendChild(opt);
+  });
+
+  const dirSel = document.createElement("select");
+  dirSel.className = "sort-dir";
+  [["asc", "↑ asc"], ["desc", "↓ desc"]].forEach(([val, text]) => {
+    const opt = document.createElement("option");
+    opt.value = val;
+    opt.textContent = text;
+    dirSel.appendChild(opt);
+  });
+
+  const removeBtn = document.createElement("button");
+  removeBtn.type = "button";
+  removeBtn.className = "btn-remove-filter";
+  removeBtn.textContent = "✕";
+  removeBtn.addEventListener("click", () => row.remove());
+
+  row.appendChild(fieldSel);
+  row.appendChild(dirSel);
+  row.appendChild(removeBtn);
+
+  return row;
 }
 
 // ---------------------------------------------------------------------------
@@ -144,12 +335,14 @@ async function loadSchema() {
     if (!res.ok) throw new Error(data.detail || data.error || `HTTP ${res.status}`);
     currentSchema = data;
 
-    buildCheckboxList("dimensionList", data.dimensions);
-    buildCheckboxList("measureList", data.measures);
+    buildDualPanel("dimensionList", "dimensionSelected", data.dimensions);
+    buildDualPanel("measureList", "measureSelected", data.measures);
 
-    // Reset filter builder
+    // Reset filter, sort builders
     filterDimensions = data.dimensions;
+    sortFields = [...data.dimensions, ...data.measures];
     $("filterList").innerHTML = "";
+    $("sortList").innerHTML = "";
 
     $("fieldSection").classList.remove("hidden");
     setStatus(`Schema loaded for '${modelName}'.`, "ok");
@@ -168,8 +361,8 @@ async function runQuery() {
     return;
   }
 
-  const dimensions = getChecked("dimensionList");
-  const measures = getChecked("measureList");
+  const dimensions = getSelected("dimensionSelected");
+  const measures = getSelected("measureSelected");
 
   if (dimensions.length === 0 && measures.length === 0) {
     setStatus("Select at least one dimension or measure.", "error");
@@ -188,7 +381,14 @@ async function runQuery() {
 
   const limit = parseInt($("limitInput").value, 10) || 1000;
 
-  const payload = { model: modelName, dimensions, measures, filters, limit };
+  const sort_by = [];
+  document.querySelectorAll("#sortList .sort-row").forEach((row) => {
+    const field = row.querySelector(".sort-field").value;
+    const direction = row.querySelector(".sort-dir").value;
+    if (field) sort_by.push({ field, direction });
+  });
+
+  const payload = { model: modelName, dimensions, measures, filters, sort_by, limit };
 
   setStatus("Running query...", "loading");
   $("runBtn").disabled = true;
@@ -257,10 +457,25 @@ Office.onReady(() => {
   $("connectBtn").addEventListener("click", connect);
   $("modelSelect").addEventListener("change", loadSchema);
   $("runBtn").addEventListener("click", runQuery);
+
   $("addFilterBtn").addEventListener("click", () => {
     if (filterDimensions.length === 0) return;
     $("filterList").appendChild(buildFilterRow());
   });
+
+  $("addSortBtn").addEventListener("click", () => {
+    const activeFields = [
+      ...getSelected("dimensionSelected"),
+      ...getSelected("measureSelected"),
+    ];
+    if (activeFields.length === 0) return;
+    $("sortList").appendChild(buildSortRow());
+  });
+
+  $("dimAllBtn").addEventListener("click", (e) => { e.preventDefault(); setAllChecked("dimensionList", "dimensionSelected", true); });
+  $("dimNoneBtn").addEventListener("click", (e) => { e.preventDefault(); setAllChecked("dimensionList", "dimensionSelected", false); });
+  $("measAllBtn").addEventListener("click", (e) => { e.preventDefault(); setAllChecked("measureList", "measureSelected", true); });
+  $("measNoneBtn").addEventListener("click", (e) => { e.preventDefault(); setAllChecked("measureList", "measureSelected", false); });
 
   // Allow Enter key in server URL field to connect
   $("serverUrl").addEventListener("keydown", (e) => {

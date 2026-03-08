@@ -35,6 +35,32 @@ h1 {
   margin-bottom: 5px;
 }
 
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.section-header .section-label {
+  margin-bottom: 0;
+}
+
+.all-none-links {
+  font-size: 11px;
+  color: #616161;
+}
+
+.all-none-links a {
+  color: #0f6cbd;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.all-none-links a:hover {
+  text-decoration: underline;
+}
+
 /* ---- Server row ---- */
 .server-row {
   display: flex;
@@ -69,6 +95,7 @@ select:focus {
 
 /* ---- Checkbox lists ---- */
 .checkbox-list {
+  flex: 1;
   max-height: 120px;
   overflow-y: auto;
   border: 1px solid #e0e0e0;
@@ -97,10 +124,109 @@ select:focus {
   accent-color: #0f6cbd;
 }
 
+/* ---- Dual-panel field picker ---- */
+.field-panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.field-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-label {
+  font-size: 10px;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 3px;
+}
+
+.selected-list {
+  flex: 1;
+  min-height: 32px;
+  max-height: 120px;
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 4px;
+  background: #fafafa;
+}
+
+.selected-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 2px;
+  border-radius: 3px;
+}
+
+.selected-item:hover {
+  background: #f0f0f0;
+}
+
+.selected-item.dragging {
+  opacity: 0.4;
+}
+
+.selected-item.drag-over {
+  outline: 1px dashed #0f6cbd;
+  background: #eff6fc;
+}
+
+.item-name {
+  flex: 1;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn-deselect {
+  background: none;
+  border: none;
+  color: #bdbdbd;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0 1px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.btn-deselect:hover {
+  color: #a4262c;
+}
+
+/* ---- Drag handles ---- */
+.drag-handle {
+  color: #bdbdbd;
+  cursor: grab;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
 /* ---- Filter rows ---- */
 .filter-row {
   display: grid;
   grid-template-columns: 2fr 1fr 2fr auto;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+/* ---- Sort rows ---- */
+.sort-row {
+  display: grid;
+  grid-template-columns: 1fr 72px auto;
   gap: 4px;
   margin-bottom: 4px;
 }

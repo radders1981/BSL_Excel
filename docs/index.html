@@ -31,19 +31,53 @@
     <!-- Fields (hidden until model selected) -->
     <div id="fieldSection" class="hidden">
       <div class="section">
-        <div class="section-label">Dimensions</div>
-        <div class="checkbox-list" id="dimensionList"></div>
+        <div class="section-header">
+          <span class="section-label">Dimensions</span>
+          <span class="all-none-links">
+            <a href="#" id="dimAllBtn">All</a> / <a href="#" id="dimNoneBtn">None</a>
+          </span>
+        </div>
+        <div class="field-panels">
+          <div class="field-panel">
+            <div class="panel-label">Available</div>
+            <div class="checkbox-list" id="dimensionList"></div>
+          </div>
+          <div class="field-panel">
+            <div class="panel-label">Selected</div>
+            <div class="selected-list" id="dimensionSelected"></div>
+          </div>
+        </div>
       </div>
 
       <div class="section">
-        <div class="section-label">Measures</div>
-        <div class="checkbox-list" id="measureList"></div>
+        <div class="section-header">
+          <span class="section-label">Measures</span>
+          <span class="all-none-links">
+            <a href="#" id="measAllBtn">All</a> / <a href="#" id="measNoneBtn">None</a>
+          </span>
+        </div>
+        <div class="field-panels">
+          <div class="field-panel">
+            <div class="panel-label">Available</div>
+            <div class="checkbox-list" id="measureList"></div>
+          </div>
+          <div class="field-panel">
+            <div class="panel-label">Selected</div>
+            <div class="selected-list" id="measureSelected"></div>
+          </div>
+        </div>
       </div>
 
       <div class="section">
         <div class="section-label">Filters</div>
         <div id="filterList"></div>
         <button class="btn-add-filter" id="addFilterBtn" type="button">+ Add Filter</button>
+      </div>
+
+      <div class="section">
+        <div class="section-label">Sort</div>
+        <div id="sortList"></div>
+        <button class="btn-add-filter" id="addSortBtn" type="button">+ Add Sort</button>
       </div>
 
       <div class="section">

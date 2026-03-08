@@ -9,11 +9,14 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from typing import Literal
 
 import pathlib
 
 from app.loader import load_models
+
+import datetime, decimal
 
 app = FastAPI(title="BSL Excel API", version="0.1.0")
 
@@ -51,12 +54,18 @@ class FilterClause(BaseModel):
     value: str
 
 
+class SortClause(BaseModel):
+    field: str
+    direction: Literal["asc", "desc"] = "asc"
+
+
 class QueryRequest(BaseModel):
     model: str
     dimensions: list[str] = []
     measures: list[str] = []
     filters: list[FilterClause] = []
-    limit: int = 1000
+    sort_by: list[SortClause] = []
+    limit: int = Field(default=1000, ge=1, le=100_000)
 
 
 # ---------------------------------------------------------------------------
@@ -151,12 +160,27 @@ def run_query(req: QueryRequest):
         ibis_filters.append(make_filter(dim, f.op, f.value))
 
     try:
-        result_df = sm.query(
+        order_by_param = None
+        if req.sort_by:
+            valid_fields = set(req.dimensions + req.measures)
+            for s in req.sort_by:
+                if s.field not in valid_fields:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Sort field '{s.field}' is not in the query output."
+                    )
+            order_by_param = [(s.field, s.direction) for s in req.sort_by]
+
+        query_expr = sm.query(
             dimensions=req.dimensions or None,
             measures=req.measures or None,
             filters=ibis_filters if ibis_filters else None,
+            order_by=order_by_param,
             limit=req.limit,
-        ).execute()
+        )
+        result_df = query_expr.execute()
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
@@ -187,7 +211,6 @@ def _cast(col_expr, value: str):
 
 def _json_safe(v):
     """Convert non-JSON-serialisable types (dates, Decimals) to strings."""
-    import datetime, decimal
     if isinstance(v, (datetime.date, datetime.datetime)):
         return v.isoformat()
     if isinstance(v, decimal.Decimal):
