@@ -22,7 +22,7 @@ DuckDB file
 ### 2. Clone & install
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_USERNAME/bsl-excel
+git clone https://github.com/radders1981/bsl-excel
 cd bsl-excel
 uv sync
 ```
@@ -50,10 +50,13 @@ curl http://localhost:8000/health
 
 ### 5. Sideload the add-in into Excel
 
-1. Open Excel
-2. **Insert → Add-ins → Upload My Add-in**
-3. Select `manifest.xml` from this project
-4. The "BSL Excel" button appears in the **Home** ribbon
+1. Create a folder in a location that can be shared. Eg "C:\Users\<UserName>\add_ins"
+2. Copy the manifest.xml file to this folder. 
+3. Share the folder
+4. Open Excel. File -> Options -> Trust Centre -> Trust Center Settings
+5. Under "Trusted Add In Catalogs", Add the share location created above. This will be in the format //ComputerName/Users/<UserName>/add_ins". The file path starting with a a drive letter will not be accepted. Confirm, exit hte menu back to excel.
+6. Select the Developer tab (may need to enable it in options), select "Add Ins". Not "Excel Add Ins"
+7. There should be a "shared folder" option containing the BSL_Excel add in. Double Click, a new option will be added to the **Home** ribbon.
 
 ### 6. Query from Excel
 

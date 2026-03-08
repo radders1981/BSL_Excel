@@ -5,6 +5,4 @@ HAVING clause
 write as table...
 Overwrite protection
 
-fix sorting on time grain.
-
 specify which fields are included, excluded from the field list (eg _keys)
