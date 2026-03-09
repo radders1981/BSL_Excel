@@ -1,6 +1,6 @@
 # BSL Excel
 
-Query a [boring_semantic_layer](https://github.com/boringdata/boring-semantic-layer) DuckDB semantic model directly from Excel — no BI platform, no cloud subscription, no build toolchain.
+Query a [boring_semantic_layer](https://github.com/boringdata/boring-semantic-layer) DuckDB based semantic model directly from Excel.
 
 ```
 DuckDB file
@@ -17,7 +17,7 @@ DuckDB file
 
 - Python 3.11+
 - [uv](https://docs.astral.sh/uv/) (`pip install uv` or `winget install astral-sh.uv`)
-- Microsoft Excel (Desktop or Online)
+- Microsoft Excel (Desktop)
 
 ### 2. Clone & install
 
